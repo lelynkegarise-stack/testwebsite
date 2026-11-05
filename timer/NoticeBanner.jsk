@@ -1,0 +1,28 @@
+import { CheckCircle2, X } from 'lucide-react';
+import { useTimer } from './TimerProvider';
+
+export default function NoticeBanner() {
+  const { notice, dismissNotice } = useTimer();
+
+  if (!notice) return null;
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-4 z-[60] flex justify-center px-4"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
+      <div className="pointer-events-auto flex max-w-md items-start gap-3 rounded-2xl border border-border/70 bg-card/95 px-4 py-3 shadow-[0_20px_44px_-26px_hsl(133_12%_18%/0.5)] backdrop-blur animate-rise">
+        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <p className="text-sm leading-relaxed text-foreground/90">{notice.message}</p>
+        <button
+          type="button"
+          onClick={dismissNotice}
+          className="-mr-1 ml-1 flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary lg:mr-0 lg:h-auto lg:w-auto lg:p-1"
+          aria-label="Dismiss"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
