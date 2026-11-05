@@ -1,0 +1,145 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookMarked, Heart, Puzzle, Sparkles, Timer, X, ArrowRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useTimer } from './TimerProvider';
+import { formatClock } from '@/lib/time';
+import { stories } from '@/data/stories';
+import StoryReader from '@/components/stories/StoryReader';
+import CrosswordGame from '@/components/activities/CrosswordGame';
+import WordSearchGame from '@/components/activities/WordSearchGame';
+import TriviaGame from '@/components/activities/TriviaGame';
+import { crosswordPuzzles } from '@/data/crosswords';
+import { wordSearchThemes } from '@/data/wordsearches';
+
+const longBreakCards = [
+  { id: 'crossword', label: 'Bible Crossword', note: 'A few clues to ponder', icon: Puzzle },
+  { id: 'wordsearch', label: 'Word Search', note: 'Fruits of the Spirit', icon: Sparkles },
+  { id: 'trivia', label: 'Bible Trivia', note: 'Test your knowledge', icon: Timer },
+];
+
+export default function BreakOverlay() {
+  const { breakOpen, mode, remaining, dismissBreak, skip, completedInCycle } = useTimer();
+  const [storyIndex, setStoryIndex] = useState(0);
+  const [active, setActive] = useState(null);
+
+  if (!breakOpen || (mode !== 'short' && mode !== 'long')) return null;
+
+  const story = stories[(completedInCycle + storyIndex) % stories.length];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background/97 backdrop-blur-md animate-fade">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <Timer className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                {mode === 'short' ? 'Short break' : 'Long break'}
+              </p>
+              <p className="font-display text-2xl leading-none tabular-nums">{formatClock(remaining)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={skip}
+              className="inline-flex min-h-11 items-center rounded-full border border-border/70 px-3.5 py-2 text-[11px] font-medium text-muted-foreground transition hover:text-foreground lg:min-h-0"
+            >
+              End break
+            </button>
+            <button
+              type="button"
+              onClick={dismissBreak}
+              aria-label="Close break"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-muted-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {mode === 'short' ? (
+          <div className="surface mt-6 px-5 py-6 sm:px-7 sm:py-7">
+            <p className="eyebrow">Rest in the Word</p>
+            <div className="mt-4">
+              <StoryReader story={story} compact />
+            </div>
+            <div className="mt-5 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setStoryIndex((i) => i + 1)}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border/70 px-3.5 py-2 text-[11px] font-medium text-foreground/80 lg:min-h-0"
+              >
+                Another story
+                <ArrowRight className="h-3 w-3" />
+              </button>
+              <Link to="/stories" className="text-[11px] font-medium text-primary">
+                All 12 stories
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-4">
+            <div className="surface px-6 py-6">
+              <p className="eyebrow">Faith activities centre</p>
+              <h2 className="mt-2 font-display text-2xl leading-tight">
+                Fifteen unhurried minutes with God
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Four focus sessions are complete. Choose something life-giving for this longer rest.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {longBreakCards.map(({ id, label, note, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActive(id)}
+                  className="surface flex flex-col items-start gap-2 px-5 py-5 text-left transition hover:-translate-y-0.5"
+                >
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span className="font-display text-lg leading-tight">{label}</span>
+                  <span className="text-[11px] text-muted-foreground">{note}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link to="/bible" className="surface-quiet flex items-center gap-3 px-5 py-4">
+                <BookMarked className="h-4 w-4 text-accent" />
+                <span className="text-sm">Open the Bible</span>
+                <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+              </Link>
+              <Link to="/prayer" className="surface-quiet flex items-center gap-3 px-5 py-4">
+                <Heart className="h-4 w-4 text-accent" />
+                <span className="text-sm">Prayer corner</span>
+                <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground" />
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-6 text-center text-[11px] italic text-muted-foreground">
+          “Be still, and know that I am God.” — Psalm 46:10
+        </p>
+      </div>
+
+      <Dialog open={Boolean(active)} onOpenChange={(open) => !open && setActive(null)}>
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+          <DialogTitle className="font-display text-xl">
+            {active === 'crossword' && 'Bible Crossword'}
+            {active === 'wordsearch' && 'Bible Word Search'}
+            {active === 'trivia' && 'Bible Trivia'}
+          </DialogTitle>
+          {active === 'crossword' && <CrosswordGame puzzle={crosswordPuzzles[0]} />}
+          {active === 'wordsearch' && <WordSearchGame theme={wordSearchThemes[0]} />}
+          {active === 'trivia' && <TriviaGame />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
